@@ -1,4 +1,2 @@
-{
-  "python.terminal.activateEnvironment": true,
-  "python.defaultInterpreterPath": "/Users/2036415/code/bin/python"
-}
+export REQUESTS_CA_BUNDLE=$HOME/.certs/company-ca.pem
+export SSL_CERT_FILE=$HOME/.certs/company-ca.pem
