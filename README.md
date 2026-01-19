@@ -1,2 +1,4 @@
 ```python
-xattr -d com.apple.quarantine aws-auth-token
+aws iam list-roles \
+  --query "Roles[?contains(RoleName, 'Admin')].[RoleName,Arn]" \
+  --output table
