@@ -1,5 +1,6 @@
 ```python
 
-kubectl describe pvc data-langfuse-postgresql-0 -n langfuse
-
-kubectl logs -n local-path-storage -l app=local-path-provisioner
+az account get-access-token \
+  --resource https://cognitiveservices.azure.com \
+  --query accessToken \
+  -o tsv
