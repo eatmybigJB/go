@@ -1,50 +1,26 @@
 ```python
-apiVersion: secrets-store.csi.x-k8s.io/v1
-kind: SecretProviderClass
-metadata:
-  name: app-kv-secret
-  namespace: application
-spec:
-  provider: azure
-  secretObjects:
-    - secretName: app-k8s-secret
-      type: Opaque
-      data:
-        - objectName: my-remote-secret
-          key: password
-  parameters:
-    usePodIdentity: "false"
-    useVMManagedIdentity: "true"
-    userAssignedIdentityID: "<managed-identity-client-id>"
-    keyvaultName: "<your-keyvault-name>"
-    tenantId: "<your-tenant-id>"
-    objects: |
-      array:
-        - |
-          objectName: my-remote-secret
-          objectType: secret
+cat > b.py <<'EOF'
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
+import os
 
+account_url = "https://scgptuksouthdevchatgptul.blob.core.windows.net/"
+container_name = "data"
+blob_name = "pii_detector/pii_rules.json"
+local_file = "pii_rules.json"
 
-apiVersion: v1
-kind: Pod
-metadata:
-  name: secret-sync-trigger
-  namespace: application
-spec:
-  containers:
-    - name: busybox
-      image: busybox:1.36
-      command: ["sh", "-c", "sleep 3600"]
-      volumeMounts:
-        - name: secrets-store-inline
-          mountPath: /mnt/secrets-store
-          readOnly: true
-  volumes:
-    - name: secrets-store-inline
-      csi:
-        driver: secrets-store.csi.k8s.io
-        readOnly: true
-        volumeAttributes:
-          secretProviderClass: app-kv-secret
+credential = DefaultAzureCredential()
+blob_service_client = BlobServiceClient(account_url=account_url, credential=credential)
 
-kubectl get secret app-k8s-secret -n application
+blob_client = blob_service_client.get_blob_client(
+    container=container_name,
+    blob=blob_name
+)
+
+print(f"开始下载 blob: {blob_name}")
+with open(local_file, "wb") as f:
+    download_stream = blob_client.download_blob()
+    f.write(download_stream.readall())
+
+print(f"下载完成，文件已保存到: {os.path.abspath(local_file)}")
+EOF
